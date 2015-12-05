@@ -30,24 +30,6 @@ using namespace std;
     0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
     0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
  };
-void keyExp(unsigned char key[16],unsigned short w[44]){
-
-    //key length 16
-    //n rounds 10
-    //n words = (10+1)*4 = 44
-
-    unsigned short temp;
-    for (int i = 0; i < 4; i++){
-        w[i] = (key[4*i] << 24) & ( key[4*i+1] << 16 ) &( key[4*i+2] << 8)& key[4*i+3];
-    }
-    for (i = 4; i < 44; i++)
-    {
-        temp = w[i - 1];
-        if (i % 4 == 0)
-            temp = SubWord (RotWord (temp)) ^ Rcon[i/4];
-        w[i] = w[i - 4] ^ temp;
-    }
-}
 void RotWord(unsigned short rot){
     unsigned char temp ,rot1[4];
     rot1[0] = ( rot >> 24 ) & 0xFF;
@@ -61,12 +43,13 @@ void RotWord(unsigned short rot){
     rot1[3] = temp;
     rot = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 }
-void SubWord(unsigned short sub[4]){
+
+void SubWord(unsigned short sub){
     unsigned char rot1[4];
-    rot1[0] = ( rot >> 24 ) & 0xFF;
-    rot1[1] = ( rot >> 16 ) & 0xFF;
-    rot1[2] = ( rot >> 8 ) & 0xFF;
-    rot1[3] = ( rot  ) & 0xFF;
+    rot1[0] = ( sub >> 24 ) & 0xFF;
+    rot1[1] = ( sub >> 16 ) & 0xFF;
+    rot1[2] = ( sub >> 8 ) & 0xFF;
+    rot1[3] = ( sub  ) & 0xFF;
 
     rot1[0] = sbox[rot1[0]];
     rot1[1] = sbox[rot1[1]];
@@ -74,6 +57,28 @@ void SubWord(unsigned short sub[4]){
     rot1[3] = sbox[rot1[3]];
     sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 }
+void keyExp(unsigned char key[16],unsigned short w[44]){
+
+    //key length 16
+    //n rounds 10
+    //n words = (10+1)*4 = 44
+
+    unsigned short temp;
+    for (int i = 0; i < 4; i++){
+        w[i] = (key[4*i] << 24) & ( key[4*i+1] << 16 ) &( key[4*i+2] << 8)& key[4*i+3];
+    }
+    for (int i = 4; i < 44; i++)
+    {
+        temp = w[i-1];
+        if (i % 4 == 0){
+            RotWord(temp);
+            SubWord(temp);
+            temp = temp ^ Rcon[i/4];
+        }
+        w[i] = w[i - 4] ^ temp;
+    }
+}
+
 //Main Blocks : 1. substit bytes .. 2. shift rows  .. 3. mix col .. 4. Add rounds keys
 void substitute_bytes(unsigned char S[4][4]){
     for(int i = 0 ; i < 4;i++)
@@ -82,7 +87,7 @@ void substitute_bytes(unsigned char S[4][4]){
 }
 void shift_rows(unsigned char S[4][4]){
     for(int col = 1; col < 4;col++)
-        for(int row = 0; row < 4;i++){
+        for(int row = 0; row < 4;row++){
             S[col][row] = S[col][(row+col)%4];
         }
    /* unsigned char temp;
@@ -108,22 +113,36 @@ void shift_rows(unsigned char S[4][4]){
 }
 
 void mix_columns(unsigned char S[4][4]){
-     for (int col = 0; col < col; i++ ) {
+     for (int col = 0; col < 4; col++ ) {
         for (int j = 0; j < 4; j++) {
             //S[(4*j) + i] = (0x02 * S[(4*j) + i]) ^ (0x03 * S[(4*(j+1)) + i]) ^ S[(4*(j+2)) + i]
              //^ S[(4*(j+3)) + i];
-             S[col][j] = (0x02 * S[col][j] ) ^ (0x03 * S[col][j+1]) ^ S[col][j+2]
-             ^ S[col]][j+3];
+             S[col][j] = (0x02 * S[col][j] ) ^ (0x03 * S[col][j+1]) ^ S[col][j+2] ^ S[col][j+3];
         }
     }
 }
-void add_round_key(unsigned char S[16] ,unsigned short key[4]){
+void add_round_key(unsigned char S[4][4] ,unsigned short key[4]){
     for(int row = 0 ; row < 4 ; row++){
         S[4][row] ^= (key[row] & 0xFF) ;
         S[3][row] ^= (key[row] & 0xFF00) ;
         S[2][row] ^= (key[row] & 0xFF0000) ;
         S[0][row] ^= (key[row] & 0xFF000000) ;
     }
+
+}
+void encrypt(unsigned char plaintext[4][4] ,unsigned short key[4]){
+    unsigned short expendedkey[44];
+    keyExp(key[4],expendedkey[44]);
+    add_round_key(plaintext[4][4],expendedkey[0,4]);
+    for(int i = 0 ; i < 9;i++){
+        substitute_bytes(plaintext[4][4]);
+        shift_rows(plaintext[4][4]);
+        mix_columns(plaintext[4][4]);
+        add_round_key(plaintext[4][4],w[round * 4,(round+1)*4 -1]);
+    }
+    substitute_bytes(plaintext[4][4]);
+    shift_rows(plaintext[4][4]);
+    add_round_key(plaintext[4][4],expendedkey[40,43]);
 
 }
 int main()
