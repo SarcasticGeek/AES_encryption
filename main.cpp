@@ -147,6 +147,13 @@ void encrypt(unsigned char plaintext[4][4] ,unsigned short key[4]){
 }
 int main()
 {
+     unsigned char pt[4][4] = {0};
+    unsigned short key[4] = {0};
+    encrypt(pt[4][4],key[4]);
     cout << "AES" << endl;
+    for(int i = 0 ; i < 4;i++)
+        for(int j = 0 ; i<4 ;i++)
+            cout<<pt[i][j];
+    cout<<endl;
     return 0;
 }
