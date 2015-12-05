@@ -40,9 +40,9 @@ void substitute_bytes(unsigned char S[4][4]){
             S[i][j] = sbox[S[i][j]];
 }
 void shift_rows(unsigned char S[4][4]){
-    for(int j = 1; j < 4;j++)
-        for(int i = 0; i < 4;i++){
-            S[j][i] = S[j][(i+j)%4];
+    for(int col = 1; col < 4;col++)
+        for(int row = 0; row < 4;i++){
+            S[col][row] = S[col][(row+col)%4];
         }
    /* unsigned char temp;
     temp = S[1][0];
@@ -67,14 +67,21 @@ void shift_rows(unsigned char S[4][4]){
 }
 
 void mix_columns(unsigned char S[4][4]){
-
+     for (int col = 0; col < col; i++ ) {
+        for (int j = 0; j < 4; j++) {
+            //S[(4*j) + i] = (0x02 * S[(4*j) + i]) ^ (0x03 * S[(4*(j+1)) + i]) ^ S[(4*(j+2)) + i]
+             //^ S[(4*(j+3)) + i];
+             S[col][j] = (0x02 * S[col][j] ) ^ (0x03 * S[col][j+1]) ^ S[col][j+2]
+             ^ S[col]][j+3];
+        }
+    }
 }
 void add_round_key(unsigned char S[16] ,unsigned short key[4]){
-    for(int i = 0 ; i < 4 ; i++){
-        S[12+i] ^= (key[i] & 0xFF) ;
-        S[8+i] ^= (key[i] & 0xFF00) ;
-        S[4+i] ^= (key[i] & 0xFF0000) ;
-        S[0+i] ^= (key[i] & 0xFF000000) ;
+    for(int row = 0 ; row < 4 ; row++){
+        S[4][row] ^= (key[row] & 0xFF) ;
+        S[3][row] ^= (key[row] & 0xFF00) ;
+        S[2][row] ^= (key[row] & 0xFF0000) ;
+        S[0][row] ^= (key[row] & 0xFF000000) ;
     }
 
 }
