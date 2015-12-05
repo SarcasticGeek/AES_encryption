@@ -31,8 +31,49 @@ using namespace std;
     0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
  };
 void keyExp(unsigned char key[16],unsigned short w[44]){
-}
 
+    //key length 16
+    //n rounds 10
+    //n words = (10+1)*4 = 44
+
+    unsigned short temp;
+    for (int i = 0; i < 4; i++){
+        w[i] = (key[4*i] << 24) & ( key[4*i+1] << 16 ) &( key[4*i+2] << 8)& key[4*i+3];
+    }
+    for (i = 4; i < 44; i++)
+    {
+        temp = w[i - 1];
+        if (i % 4 == 0)
+            temp = SubWord (RotWord (temp)) ^ Rcon[i/4];
+        w[i] = w[i - 4] ^ temp;
+    }
+}
+void RotWord(unsigned short rot){
+    unsigned char temp ,rot1[4];
+    rot1[0] = ( rot >> 24 ) & 0xFF;
+    rot1[1] = ( rot >> 16 ) & 0xFF;
+    rot1[2] = ( rot >> 8 ) & 0xFF;
+    rot1[3] = ( rot  ) & 0xFF;
+    temp = rot1[0];
+    rot1[0] = rot1[1];
+    rot1[1] = rot1[2];
+    rot1[2] = rot1[3];
+    rot1[3] = temp;
+    rot = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
+}
+void SubWord(unsigned short sub[4]){
+    unsigned char rot1[4];
+    rot1[0] = ( rot >> 24 ) & 0xFF;
+    rot1[1] = ( rot >> 16 ) & 0xFF;
+    rot1[2] = ( rot >> 8 ) & 0xFF;
+    rot1[3] = ( rot  ) & 0xFF;
+
+    rot1[0] = sbox[rot1[0]];
+    rot1[1] = sbox[rot1[1]];
+    rot1[2] = sbox[rot1[2]];
+    rot1[3] = sbox[rot1[3]];
+    sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
+}
 //Main Blocks : 1. substit bytes .. 2. shift rows  .. 3. mix col .. 4. Add rounds keys
 void substitute_bytes(unsigned char S[4][4]){
     for(int i = 0 ; i < 4;i++)
