@@ -40,7 +40,11 @@ void substitute_bytes(unsigned char S[4][4]){
             S[i][j] = sbox[S[i][j]];
 }
 void shift_rows(unsigned char S[4][4]){
-    unsigned char temp;
+    for(int j = 1; j < 4;j++)
+        for(int i = 0; i < 4;i++){
+            S[j][i] = S[j][(i+j)%4];
+        }
+   /* unsigned char temp;
     temp = S[1][0];
     S[1][0] = S[1][3];
     S[1][1] = temp;
@@ -59,7 +63,7 @@ void shift_rows(unsigned char S[4][4]){
     S[3][0]=S[3][3];
     S[3][3]=S[3][2];
     S[3][2]=S[3][1];
-    S[3][1]=temp;
+    S[3][1]=temp; */
 }
 
 void mix_columns(unsigned char S[4][4]){
