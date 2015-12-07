@@ -3,7 +3,7 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 ******************************/
 
 #include <iostream>
-
+#include <iomanip>
 using namespace std;
  unsigned char sbox[256] =
  {
@@ -30,7 +30,7 @@ using namespace std;
     0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
     0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
  };
-void RotWord(unsigned short rot){
+void RotWord(long rot){
     unsigned char temp ,rot1[4];
     rot1[0] = ( rot >> 24 ) & 0xFF;
     rot1[1] = ( rot >> 16 ) & 0xFF;
@@ -44,7 +44,7 @@ void RotWord(unsigned short rot){
     rot = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 }
 
-void SubWord(unsigned short sub){
+void SubWord(long sub){
     unsigned char rot1[4];
     rot1[0] = ( sub >> 24 ) & 0xFF;
     rot1[1] = ( sub >> 16 ) & 0xFF;
@@ -57,13 +57,13 @@ void SubWord(unsigned short sub){
     rot1[3] = sbox[rot1[3]];
     sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 }
-void keyExp(unsigned char key[16],unsigned short w[44]){
+void keyExp(unsigned char* key,long* w){
 
     //key length 16
     //n rounds 10
     //n words = (10+1)*4 = 44
 
-    unsigned short temp;
+    long temp;
     for (int i = 0; i < 4; i++){
         w[i] = (key[4*i] << 24) & ( key[4*i+1] << 16 ) &( key[4*i+2] << 8)& key[4*i+3];
     }
@@ -80,12 +80,12 @@ void keyExp(unsigned char key[16],unsigned short w[44]){
 }
 
 //Main Blocks : 1. substit bytes .. 2. shift rows  .. 3. mix col .. 4. Add rounds keys
-void substitute_bytes(unsigned char S[4][4]){
+void substitute_bytes(unsigned char* S[4]){
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j < 4 ;j++)
             S[i][j] = sbox[S[i][j]];
 }
-void shift_rows(unsigned char S[4][4]){
+void shift_rows(unsigned char* S[4]){
     for(int col = 1; col < 4;col++)
         for(int row = 0; row < 4;row++){
             S[col][row] = S[col][(row+col)%4];
@@ -112,7 +112,7 @@ void shift_rows(unsigned char S[4][4]){
     S[3][1]=temp; */
 }
 
-void mix_columns(unsigned char S[4][4]){
+void mix_columns(unsigned char* S[4]){
      for (int col = 0; col < 4; col++ ) {
         for (int j = 0; j < 4; j++) {
             //S[(4*j) + i] = (0x02 * S[(4*j) + i]) ^ (0x03 * S[(4*(j+1)) + i]) ^ S[(4*(j+2)) + i]
@@ -121,7 +121,7 @@ void mix_columns(unsigned char S[4][4]){
         }
     }
 }
-void add_round_key(unsigned char S[4][4] ,unsigned short key[4]){
+void add_round_key(unsigned char** S ,long* key){
     for(int row = 0 ; row < 4 ; row++){
         S[4][row] ^= (key[row] & 0xFF) ;
         S[3][row] ^= (key[row] & 0xFF00) ;
@@ -130,30 +130,55 @@ void add_round_key(unsigned char S[4][4] ,unsigned short key[4]){
     }
 
 }
-void encrypt(unsigned char plaintext[4][4] ,unsigned short key[4]){
-    unsigned short expendedkey[44];
-    keyExp(key[4],expendedkey[44]);
-    add_round_key(plaintext[4][4],expendedkey[0,4]);
+void encrypt(unsigned char** plaintext ,unsigned char* key){
+    long *expendedkey[44];
+    keyExp(&key[4],expendedkey[44]);
+    add_round_key(&plaintext[4],expendedkey[0,4]);
     for(int i = 0 ; i < 9;i++){
-        substitute_bytes(plaintext[4][4]);
-        shift_rows(plaintext[4][4]);
-        mix_columns(plaintext[4][4]);
-        add_round_key(plaintext[4][4],w[round * 4,(round+1)*4 -1]);
+        substitute_bytes(&plaintext[4]);
+        shift_rows(&plaintext[4]);
+        mix_columns(&plaintext[4]);
+        add_round_key(&plaintext[4],expendedkey[i * 4,(i+1)*4 -1]);
     }
-    substitute_bytes(plaintext[4][4]);
-    shift_rows(plaintext[4][4]);
-    add_round_key(plaintext[4][4],expendedkey[40,43]);
+    substitute_bytes(&plaintext[4]);
+    shift_rows(&plaintext[4]);
+    add_round_key(&plaintext[4],expendedkey[40,43]);
 
 }
+struct HexCharStruct
+{
+  unsigned char c;
+  HexCharStruct(unsigned char _c) : c(_c) { }
+};
+
+inline std::ostream& operator<<(std::ostream& o, const HexCharStruct& hs)
+{
+  return (o << std::hex << (int)hs.c);
+}
+
+inline HexCharStruct hex(unsigned char _c)
+{
+  return HexCharStruct(_c);
+}
+
 int main()
 {
-     unsigned char pt[4][4] = {0};
-    unsigned short key[4] = {0};
-    encrypt(pt[4][4],key[4]);
+    unsigned char* plaintext[4];
+    for (int i=0; i < 4; i++)
+        plaintext[i] = new unsigned char[4];
+    for(int i = 0;i<4;i++){
+        for(int j = 0;j<4;j++){
+            plaintext[i][j] = 0x01;
+        }
+    }
+    unsigned char key[16] = {0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01};
+    encrypt(&plaintext[4],key);
     cout << "AES" << endl;
+
     for(int i = 0 ; i < 4;i++)
-        for(int j = 0 ; i<4 ;i++)
-            cout<<pt[i][j];
+        for(int j = 0 ; j<4 ;j++)
+            cout<< hex(plaintext[i][j]);
     cout<<endl;
+
     return 0;
 }
