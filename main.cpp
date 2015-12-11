@@ -83,7 +83,7 @@ void keyExp(unsigned char* key,unsigned long* w){
 }
 
 //Main Blocks : 1. substit bytes .. 2. shift rows  .. 3. mix col .. 4. Add rounds keys
-void substitute_bytes(unsigned char* S[4]){
+void substitute_bytes(unsigned char** S){
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j < 4 ;j++)
             S[i][j] = sbox[S[i][j]];
@@ -124,28 +124,28 @@ void mix_columns(unsigned char* S[4]){
         }
     }
 }
-void add_round_key(unsigned char** S ,unsigned long* key){
+void add_round_key(int round,unsigned char** S ,unsigned long* expendedkeyAtround){
     for(int row = 0 ; row < 4 ; row++){
-        S[4][row] ^= (key[row] & 0xFF) ;
-        S[3][row] ^= (key[row] & 0xFF00) ;
-        S[2][row] ^= (key[row] & 0xFF0000) ;
-        S[0][row] ^= (key[row] & 0xFF000000) ;
+        S[3][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF) ;
+        S[2][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF00) ;
+        S[1][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF0000) ;
+        S[0][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF000000) ;
     }
 
 }
 void encrypt(unsigned char** plaintext ,unsigned char* key){
-    unsigned long *expendedkey[44];
-    keyExp(key,expendedkey[44]);
-    add_round_key(&plaintext[4],expendedkey[0,4]);
-    for(int i = 0 ; i < 9;i++){
-        substitute_bytes(&plaintext[4]);
-        shift_rows(&plaintext[4]);
-        mix_columns(&plaintext[4]);
-        add_round_key(&plaintext[4],expendedkey[i * 4,(i+1)*4 -1]);
+    unsigned long expendedkey[44];
+    keyExp(key,expendedkey);
+    add_round_key(0,plaintext,expendedkey); //0-3
+    for(int i = 1 ; i < 10;i++){
+        substitute_bytes(plaintext);
+        shift_rows(plaintext);
+        mix_columns(plaintext);
+       add_round_key(i,plaintext,expendedkey);//[i * 4,(i+1)*4 -1]
     }
-    substitute_bytes(&plaintext[4]);
-    shift_rows(&plaintext[4]);
-    add_round_key(&plaintext[4],expendedkey[40,43]);
+    substitute_bytes(plaintext);
+    shift_rows(plaintext);
+   add_round_key(10,plaintext,expendedkey);//40-43
 
 }
 struct HexCharStruct
@@ -166,24 +166,28 @@ inline HexCharStruct hex(unsigned char _c)
 
 int main()
 {
-    unsigned char* plaintext[4];
+    unsigned char* plaintextt[4];
     for (int i=0; i < 4; i++)
-        plaintext[i] = new unsigned char[4];
+        plaintextt[i] = new unsigned char[4];
     for(int i = 0;i<4;i++){
         for(int j = 0;j<4;j++){
-            plaintext[i][j] = 'b';
+            plaintextt[i][j] = 0x11;
         }
     }
+	cout<<"Plain Text:"<<endl;
+	for(int i = 0 ; i < 4;i++)
+        for(int j = 0 ; j<4 ;j++)
+             cout<< hex(plaintextt[i][j]);
+    cout<<endl;
     unsigned char keyy[16] ;
     for(int k = 0 ; k < 16 ; k++)
-        keyy[k] = 'a';
-    encrypt(&plaintext[4],keyy);
+        keyy[k] = 0x22;
+    encrypt(plaintextt,keyy);
     cout << "AES" << endl;
-
+	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
-            cout<< hex(plaintext[i][j]);
+            cout<< hex(plaintextt[i][j]);
     cout<<endl;
-
     return 0;
 }
