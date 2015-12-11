@@ -30,7 +30,7 @@ using namespace std;
     0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
     0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
  };
-void RotWord(long rot){
+void RotWord(unsigned long rot){
     unsigned char temp ,rot1[4];
     rot1[0] = ( rot >> 24 ) & 0xFF;
     rot1[1] = ( rot >> 16 ) & 0xFF;
@@ -44,7 +44,7 @@ void RotWord(long rot){
     rot = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 }
 
-void SubWord(long sub){
+void SubWord(unsigned long sub){
     unsigned char rot1[4];
     rot1[0] = ( sub >> 24 ) & 0xFF;
     rot1[1] = ( sub >> 16 ) & 0xFF;
@@ -57,15 +57,18 @@ void SubWord(long sub){
     rot1[3] = sbox[rot1[3]];
     sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 }
-void keyExp(unsigned char* key,long* w){
+void keyExp(unsigned char* key,unsigned long* w){
 
     //key length 16
     //n rounds 10
     //n words = (10+1)*4 = 44
 
-    long temp;
+    unsigned long temp;
     for (int i = 0; i < 4; i++){
-        w[i] = (key[4*i] << 24) & ( key[4*i+1] << 16 ) &( key[4*i+2] << 8)& key[4*i+3];
+        w[i] = (key[4*i] << 24);
+        w[i] = w[i] & ( key[4*i+1] << 16 );
+        w[i] = w[i] &( key[4*i+2] << 8);
+        w[i] = w[i]& key[4*i+3];
     }
     for (int i = 4; i < 44; i++)
     {
@@ -121,7 +124,7 @@ void mix_columns(unsigned char* S[4]){
         }
     }
 }
-void add_round_key(unsigned char** S ,long* key){
+void add_round_key(unsigned char** S ,unsigned long* key){
     for(int row = 0 ; row < 4 ; row++){
         S[4][row] ^= (key[row] & 0xFF) ;
         S[3][row] ^= (key[row] & 0xFF00) ;
@@ -131,8 +134,8 @@ void add_round_key(unsigned char** S ,long* key){
 
 }
 void encrypt(unsigned char** plaintext ,unsigned char* key){
-    long *expendedkey[44];
-    keyExp(&key[4],expendedkey[44]);
+    unsigned long *expendedkey[44];
+    keyExp(key,expendedkey[44]);
     add_round_key(&plaintext[4],expendedkey[0,4]);
     for(int i = 0 ; i < 9;i++){
         substitute_bytes(&plaintext[4]);
@@ -168,11 +171,13 @@ int main()
         plaintext[i] = new unsigned char[4];
     for(int i = 0;i<4;i++){
         for(int j = 0;j<4;j++){
-            plaintext[i][j] = 0x01;
+            plaintext[i][j] = 'b';
         }
     }
-    unsigned char key[16] = {0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01};
-    encrypt(&plaintext[4],key);
+    unsigned char keyy[16] ;
+    for(int k = 0 ; k < 16 ; k++)
+        keyy[k] = 'a';
+    encrypt(&plaintext[4],keyy);
     cout << "AES" << endl;
 
     for(int i = 0 ; i < 4;i++)
