@@ -5,6 +5,24 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 #include <iostream>
 #include <iomanip>
 using namespace std;
+
+//TO PRINT HEX
+struct HexCharStruct
+{
+  unsigned char c;
+  HexCharStruct(unsigned char _c) : c(_c) { }
+};
+
+inline std::ostream& operator<<(std::ostream& o, const HexCharStruct& hs)
+{
+  return (o << std::hex << (int)hs.c);
+}
+
+inline HexCharStruct hex(unsigned char _c)
+{
+  return HexCharStruct(_c);
+}
+//
  unsigned char sbox[256] =
  {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -24,39 +42,67 @@ using namespace std;
     0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
  };
- unsigned char Rcon[32] = {
+ unsigned char Rcon1[32] = {
     0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
     0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
     0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
     0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
  };
-void RotWord(unsigned long rot){
-    unsigned char temp ,rot1[4];
-    rot1[0] = ( rot >> 24 ) & 0xFF;
-    rot1[1] = ( rot >> 16 ) & 0xFF;
-    rot1[2] = ( rot >> 8 ) & 0xFF;
-    rot1[3] = ( rot  ) & 0xFF;
-    temp = rot1[0];
-    rot1[0] = rot1[1];
-    rot1[1] = rot1[2];
-    rot1[2] = rot1[3];
-    rot1[3] = temp;
-    rot = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
-}
+ unsigned char Rcon[] = { 0x01, 0x02 , 0x04 , 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36 };
+  unsigned char Rcon3[255] = {
+  0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
+  0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
+  0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
+  0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8,
+  0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef,
+  0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc,
+  0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b,
+  0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3,
+  0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94,
+  0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
+  0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35,
+  0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f,
+  0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04,
+  0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63,
+  0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd,
+  0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb  };
 
-void SubWord(unsigned long sub){
+unsigned long SubWord(unsigned long sub){
     unsigned char rot1[4];
-    rot1[0] = ( sub >> 24 ) & 0xFF;
-    rot1[1] = ( sub >> 16 ) & 0xFF;
-    rot1[2] = ( sub >> 8 ) & 0xFF;
-    rot1[3] = ( sub  ) & 0xFF;
+    rot1[0] = ( (sub & 0xFF000000 )>> 24 ) ;
+    rot1[1] = (( sub & 0x00FF0000) >> 16 ) ;
+    rot1[2] = ( (sub & 0x0000FF00) >> 8 ) ;
+    rot1[3] = ( sub &  0x000000FF  ) ;
 
     rot1[0] = sbox[rot1[0]];
     rot1[1] = sbox[rot1[1]];
     rot1[2] = sbox[rot1[2]];
     rot1[3] = sbox[rot1[3]];
-    sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
+  // sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
+	 return (rot1[0]<<24) | ( rot1[1] << 16 ) |( rot1[2] << 8)| (rot1[3]);
+
 }
+unsigned long  RotWord(unsigned long rot){
+    unsigned char temp ,rot1[4];
+    rot1[0] = ( (rot & 0xFF000000) >> 24 ) ;
+    rot1[1] = ( (rot & 0x00FF0000) >> 16 ) ;
+    rot1[2] = ( (rot & 0x0000FF00) >> 8 ) ;
+    rot1[3] = ( (rot & 0xFF)  ) ;
+    temp = rot1[0];
+    rot1[0] = rot1[1];
+    rot1[1] = rot1[2];
+    rot1[2] = rot1[3];
+    rot1[3] = temp;
+    return ((rot1[0] <<24) | ( rot1[1] << 16 ) |( rot1[2] << 8)| (rot1[3]));
+
+	/* return ((rot & 0x000000FF) << 24) |
+        ((rot & 0x0000FF00) >> 8) |
+        ((rot & 0x00FF0000) >> 8) |
+        ((rot & 0xFF000000) >> 8);*/
+
+}
+
+
 void keyExp(unsigned char* key,unsigned long* w){
 
     //key length 16
@@ -65,18 +111,21 @@ void keyExp(unsigned char* key,unsigned long* w){
 
     unsigned long temp;
     for (int i = 0; i < 4; i++){
-        w[i] = (key[4*i] << 24);
-        w[i] = w[i] & ( key[4*i+1] << 16 );
-        w[i] = w[i] &( key[4*i+2] << 8);
-        w[i] = w[i]& key[4*i+3];
+      /*  w[i] = (key[4*i] << 24);
+        w[i] = w[i] & ( key[(4*i)+1] << 16 );
+        w[i] = w[i] &( key[(4*i)+2] << 8);
+        w[i] = w[i]& key[(4*i)+3];*/
+	//	w[i] =key[(4*i)]| ( key[(4*i)+1] << 8)|( key[(4*i)+2] << 16 )| (key[(4*i)+3] << 24) ;
+		w[i] =(key[(4*i)]<<24)| ( key[(4*i)+1] << 16)|( key[(4*i)+2] << 8 )| (key[(4*i)+3] ) ;
     }
     for (int i = 4; i < 44; i++)
     {
         temp = w[i-1];
-        if (i % 4 == 0){
-            RotWord(temp);
-            SubWord(temp);
-            temp = temp ^ Rcon[i/4];
+        if ((i % 4) == 0){
+           // RotWord(temp);
+           // SubWord(temp);
+            //temp = temp ^ 0x00000001;//((Rcon[i/4])&0x000000FF);
+			temp = SubWord(RotWord(temp)) ^( Rcon1[i/4]<<24);
         }
         w[i] = w[i - 4] ^ temp;
     }
@@ -88,7 +137,7 @@ void substitute_bytes(unsigned char** S){
         for(int j = 0 ; j < 4 ;j++)
             S[i][j] = sbox[S[i][j]];
 }
-void shift_rows(unsigned char* S[4]){
+void shift_rows(unsigned char** S){
     for(int col = 1; col < 4;col++)
         for(int row = 0; row < 4;row++){
             S[col][row] = S[col][(row+col)%4];
@@ -115,7 +164,7 @@ void shift_rows(unsigned char* S[4]){
     S[3][1]=temp; */
 }
 
-void mix_columns(unsigned char* S[4]){
+void mix_columns(unsigned char** S){
      for (int col = 0; col < 4; col++ ) {
         for (int j = 0; j < 4; j++) {
             //S[(4*j) + i] = (0x02 * S[(4*j) + i]) ^ (0x03 * S[(4*(j+1)) + i]) ^ S[(4*(j+2)) + i]
@@ -136,6 +185,10 @@ void add_round_key(int round,unsigned char** S ,unsigned long* expendedkeyAtroun
 void encrypt(unsigned char** plaintext ,unsigned char* key){
     unsigned long expendedkey[44];
     keyExp(key,expendedkey);
+	for (int i = 0; i < 44; i++)
+	{
+		cout<<expendedkey[i]<<endl;
+	}
     add_round_key(0,plaintext,expendedkey); //0-3
     for(int i = 1 ; i < 10;i++){
         substitute_bytes(plaintext);
@@ -148,21 +201,7 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
    add_round_key(10,plaintext,expendedkey);//40-43
 
 }
-struct HexCharStruct
-{
-  unsigned char c;
-  HexCharStruct(unsigned char _c) : c(_c) { }
-};
 
-inline std::ostream& operator<<(std::ostream& o, const HexCharStruct& hs)
-{
-  return (o << std::hex << (int)hs.c);
-}
-
-inline HexCharStruct hex(unsigned char _c)
-{
-  return HexCharStruct(_c);
-}
 
 int main()
 {
@@ -179,15 +218,18 @@ int main()
         for(int j = 0 ; j<4 ;j++)
              cout<< hex(plaintextt[i][j]);
     cout<<endl;
-    unsigned char keyy[16] ;
+    unsigned char keyy[17] = "Thats my Kung Fu";
     for(int k = 0 ; k < 16 ; k++)
-        keyy[k] = 0x22;
+		cout<<hex(keyy[k]);
+	cout<<endl;
     encrypt(plaintextt,keyy);
-    cout << "AES" << endl;
+	cout<<endl;
+   // cout << "AES" << endl;
 	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
-            cout<< hex(plaintextt[i][j]);
+            cout<< hex(plaintextt[i][j]); //def53a8d5f58d42b5c5d1b5a34a0c2c9
+
     cout<<endl;
     return 0;
 }
