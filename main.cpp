@@ -138,10 +138,19 @@ void substitute_bytes(unsigned char** S){
             S[i][j] = sbox[S[i][j]];
 }
 void shift_rows(unsigned char** S){
-    for(int col = 1; col < 4;col++)
-        for(int row = 0; row < 4;row++){
-            S[col][row] = S[col][(row+col)%4];
+	unsigned char Sdash[4][4];
+   for(int row = 1; row < 4;row++)
+	for(int col = 0; col < 4;col++)
+        {
+            Sdash[row][col] = S[row][(row+col)%4];
         }
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			S[i][j] = Sdash[i][j];
+		}
+	}
    /* unsigned char temp;
     temp = S[1][0];
     S[1][0] = S[1][3];
@@ -163,38 +172,77 @@ void shift_rows(unsigned char** S){
     S[3][2]=S[3][1];
     S[3][1]=temp; */
 }
-
+//
+unsigned char  gfMultiply(unsigned char h1, unsigned char  h2)
+{
+    //h1 can 0x01, 0x02 or 0x03
+    unsigned char  r;
+    if(h1==0x01)
+        return h2;
+    if(h1==0x02)
+    {
+        r = (h2<<1);
+        if(r>0xFF)
+            r = r^0x11b;
+    }
+    else
+    {
+        r = (h2<<1);
+        if(r>0xFF)
+            r = r^0x11b;
+        r = r^h2;
+    }
+    return r;
+}
+//
 void mix_columns(unsigned char** S){
+	unsigned char Sdash[4][4];
      for (int col = 0; col < 4; col++ ) {
-        for (int j = 0; j < 4; j++) {
+       // for (int row = 0; row < 4; row++) {
             //S[(4*j) + i] = (0x02 * S[(4*j) + i]) ^ (0x03 * S[(4*(j+1)) + i]) ^ S[(4*(j+2)) + i]
              //^ S[(4*(j+3)) + i];
-             S[col][j] = (0x02 * S[col][j] ) ^ (0x03 * S[col][j+1]) ^ S[col][j+2] ^ S[col][j+3];
-        }
+			Sdash[0][col] = (gfMultiply(0x02 , S[0][col]) ) ^ (gfMultiply(0x03 , S[1][col])) ^ S[1][col] ^ S[3][col];
+			Sdash[1][col] = ( S[0][col] ) ^ (gfMultiply( 0x02 , S[1][col])) ^ (gfMultiply( 0x03 ,S[2][col])) ^ S[3][col];
+			Sdash[2][col] = ( S[0][col] ) ^ (S[1][col]) ^ (gfMultiply(0x02 ,S[2][col])) ^ (gfMultiply(0x03 ,S[3][col]));
+             Sdash[3][col] = (gfMultiply(0x03 , S[0][col] )) ^ ( S[1][col]) ^ S[2][col] ^ (gfMultiply(0x02 ,S[3][col]));
+       // }
     }
+	 for (int i = 0; i < 4; i++)
+	 {
+		 for (int j = 0; j < 4; j++)
+		 {
+			 S[i][j] = Sdash[i][j];
+		 }
+	 }
 }
 void add_round_key(int round,unsigned char** S ,unsigned long* expendedkeyAtround){
-    for(int row = 0 ; row < 4 ; row++){
-        S[3][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF) ;
-        S[2][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF00) ;
-        S[1][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF0000) ;
-        S[0][row] ^= (expendedkeyAtround[(round*4)+row] & 0xFF000000) ;
+    for(int col = 0 ; col < 4 ; col++){
+        S[3][col] ^= ((expendedkeyAtround[(round*4)+col] & (0xFF))) ;
+        S[2][col] ^= ((expendedkeyAtround[(round*4)+col] & 0x00FF00))>>8 ;
+        S[1][col] ^= ((expendedkeyAtround[(round*4)+col] & 0x00FF0000))>>16;
+        S[0][col] ^= ((expendedkeyAtround[(round*4)+col] & 0xFF000000))>>24 ;
     }
 
 }
 void encrypt(unsigned char** plaintext ,unsigned char* key){
     unsigned long expendedkey[44];
     keyExp(key,expendedkey);
-	for (int i = 0; i < 44; i++)
-	{
-		cout<<expendedkey[i]<<endl;
-	}
     add_round_key(0,plaintext,expendedkey); //0-3
     for(int i = 1 ; i < 10;i++){
         substitute_bytes(plaintext);
         shift_rows(plaintext);
+			   for (int x = 0; x < 4; x++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			cout<<"Round"<<i<<":"<<hex(plaintext[x][j])
+				<<endl;
+
+		}
+	}
         mix_columns(plaintext);
        add_round_key(i,plaintext,expendedkey);//[i * 4,(i+1)*4 -1]
+
     }
     substitute_bytes(plaintext);
     shift_rows(plaintext);
@@ -205,12 +253,21 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
 
 int main()
 {
-    unsigned char* plaintextt[4];
-    for (int i=0; i < 4; i++)
+	unsigned char* plaintextt[4];
+    for (int i=0; i < 4; i++){
         plaintextt[i] = new unsigned char[4];
+	}
+	 unsigned char plaintexttt[4][4] = {
+		{0x54,0x4F,0x4E,0x20},
+		{0x77,0x6E,0x69,0x54},
+		{0x6F,0x65,0x6E,0x77},
+		{0x20,0x20,0x65,0x6F},
+	};
+
+
     for(int i = 0;i<4;i++){
         for(int j = 0;j<4;j++){
-            plaintextt[i][j] = 0x11;
+            plaintextt[i][j] = plaintexttt[i][j];
         }
     }
 	cout<<"Plain Text:"<<endl;
@@ -219,8 +276,8 @@ int main()
              cout<< hex(plaintextt[i][j]);
     cout<<endl;
     unsigned char keyy[17] = "Thats my Kung Fu";
-    for(int k = 0 ; k < 16 ; k++)
-		cout<<hex(keyy[k]);
+    //for(int k = 0 ; k < 16 ; k++)
+		//cout<<hex(keyy[k]);
 	cout<<endl;
     encrypt(plaintextt,keyy);
 	cout<<endl;
