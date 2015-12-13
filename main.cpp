@@ -138,17 +138,18 @@ void substitute_bytes(unsigned char** S){
             S[i][j] = sbox[S[i][j]];
 }
 void shift_rows(unsigned char** S){
-	unsigned char Sdash[4][4];
-   for(int row = 1; row < 4;row++)
+	unsigned char Sdashh[4][4];
+   for(int row = 1; row < 4;row++){
 	for(int col = 0; col < 4;col++)
         {
-            Sdash[row][col] = S[row][(row+col)%4];
+            Sdashh[row][col] = S[row][(row+col)%4];
         }
-	for (int i = 0; i < 4; i++)
+	}
+	for (int i = 1; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			S[i][j] = Sdash[i][j];
+			S[i][j] = Sdashh[i][j];
 		}
 	}
    /* unsigned char temp;
@@ -183,17 +184,23 @@ unsigned char  gfMultiply(unsigned char h1, unsigned char  h2)
     {
         r = (h2<<1);
         if(r>0xFF)
-            r = r^0x11b;
+            r = r^0x11;
     }
     else
     {
         r = (h2<<1);
         if(r>0xFF)
-            r = r^0x11b;
+            r = r^0x11;
         r = r^h2;
     }
     return r;
 }
+// xtime is a macro that finds the product of {02} and the argument to xtime modulo {1b}
+#define xtime(x)   ((x<<1) ^ (((x>>7) & 1) * 0x1b))
+
+// Multiplty is a macro used to multiply numbers in the field GF(2^8)
+#define Multiply(x,y) (((y & 1) * x) ^ ((y>>1 & 1) * xtime(x)) ^ ((y>>2 & 1) * xtime(xtime(x))) ^ ((y>>3 & 1) * xtime(xtime(xtime(x)))) ^ ((y>>4 & 1) * xtime(xtime(xtime(xtime(x))))))
+
 //
 void mix_columns(unsigned char** S){
 	unsigned char Sdash[4][4];
@@ -201,10 +208,10 @@ void mix_columns(unsigned char** S){
        // for (int row = 0; row < 4; row++) {
             //S[(4*j) + i] = (0x02 * S[(4*j) + i]) ^ (0x03 * S[(4*(j+1)) + i]) ^ S[(4*(j+2)) + i]
              //^ S[(4*(j+3)) + i];
-			Sdash[0][col] = (gfMultiply(0x02 , S[0][col]) ) ^ (gfMultiply(0x03 , S[1][col])) ^ S[1][col] ^ S[3][col];
-			Sdash[1][col] = ( S[0][col] ) ^ (gfMultiply( 0x02 , S[1][col])) ^ (gfMultiply( 0x03 ,S[2][col])) ^ S[3][col];
-			Sdash[2][col] = ( S[0][col] ) ^ (S[1][col]) ^ (gfMultiply(0x02 ,S[2][col])) ^ (gfMultiply(0x03 ,S[3][col]));
-             Sdash[3][col] = (gfMultiply(0x03 , S[0][col] )) ^ ( S[1][col]) ^ S[2][col] ^ (gfMultiply(0x02 ,S[3][col]));
+			Sdash[0][col] = (Multiply( S[0][col],0x02) ) ^ (Multiply( S[1][col],0x03 )) ^ S[2][col] ^ S[3][col];
+			Sdash[1][col] = ( S[0][col] ) ^ (Multiply(  S[1][col],0x02 )) ^ (Multiply(  S[2][col],0x03)) ^ S[3][col];
+			Sdash[2][col] = ( S[0][col] ) ^ (S[1][col]) ^ (Multiply(S[2][col],0x02 )) ^ (Multiply(S[3][col],0x03));
+             Sdash[3][col] = (Multiply(  S[0][col],0x03 )) ^ ( S[1][col]) ^ S[2][col] ^ (Multiply( S[3][col],0x02));
        // }
     }
 	 for (int i = 0; i < 4; i++)
@@ -231,18 +238,8 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
     for(int i = 1 ; i < 10;i++){
         substitute_bytes(plaintext);
         shift_rows(plaintext);
-			   for (int x = 0; x < 4; x++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			cout<<"Round"<<i<<":"<<hex(plaintext[x][j])
-				<<endl;
-
-		}
-	}
         mix_columns(plaintext);
        add_round_key(i,plaintext,expendedkey);//[i * 4,(i+1)*4 -1]
-
     }
     substitute_bytes(plaintext);
     shift_rows(plaintext);
@@ -278,9 +275,7 @@ int main()
     unsigned char keyy[17] = "Thats my Kung Fu";
     //for(int k = 0 ; k < 16 ; k++)
 		//cout<<hex(keyy[k]);
-	cout<<endl;
     encrypt(plaintextt,keyy);
-	cout<<endl;
    // cout << "AES" << endl;
 	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
