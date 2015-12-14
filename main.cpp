@@ -215,22 +215,23 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
 
 int main()
 {
-	clock_t tStart = clock();
+
 	unsigned char* plaintextt[4];
     for (int i=0; i < 4; i++){
         plaintextt[i] = new unsigned char[4];
 	}
-	 unsigned char plaintexttt[4][4] = {
-		{0x54,0x4F,0x4E,0x20},
-		{0x77,0x6E,0x69,0x54},
-		{0x6F,0x65,0x6E,0x77},
-		{0x20,0x20,0x65,0x6F},
-	};
+	 unsigned char plaintexttt[17] = "Two One Nine Two";
+	// {
+	//	0x54,0x4F,0x4E,0x20,
+	//	0x77,0x6E,0x69,0x54,
+	//	0x6F,0x65,0x6E,0x77,
+	//	0x20,0x20,0x65,0x6F,
+	//};
 
 
     for(int i = 0;i<4;i++){
         for(int j = 0;j<4;j++){
-            plaintextt[i][j] = plaintexttt[i][j];
+            plaintextt[i][j] = plaintexttt[j*4 + i];
         }
     }
 	cout<<"Plain Text:"<<endl;
@@ -239,8 +240,9 @@ int main()
              cout<< hex(plaintextt[i][j]);
     cout<<endl;
     unsigned char keyy[17] = "Thats my Kung Fu";
-
+	clock_t tStart = clock();
     encrypt(plaintextt,keyy);
+	long double EndTime = (long double)(clock() - tStart)/CLOCKS_PER_SEC;
    // cout << "AES" << endl;
 	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
@@ -248,6 +250,6 @@ int main()
             cout<< hex(plaintextt[i][j]);
 
     cout<<endl;
-	    cout<<"Time taken: "<< (double)(clock() - tStart)/CLOCKS_PER_SEC<<" s\n";
+	    cout<<"Time taken: "<<EndTime <<" s\n";
     return 0;
 }
