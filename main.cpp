@@ -4,6 +4,8 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 
 #include <iostream>
 #include <iomanip>
+#include <time.h>
+
 using namespace std;
 
 //TO PRINT HEX
@@ -78,7 +80,6 @@ unsigned long SubWord(unsigned long sub){
     rot1[1] = sbox[rot1[1]];
     rot1[2] = sbox[rot1[2]];
     rot1[3] = sbox[rot1[3]];
-  // sub = (rot1[0] << 24) & ( rot1[1] << 16 ) &( rot1[2] << 8)& rot1[3];
 	 return (rot1[0]<<24) | ( rot1[1] << 16 ) |( rot1[2] << 8)| (rot1[3]);
 
 }
@@ -95,27 +96,15 @@ unsigned long  RotWord(unsigned long rot){
     rot1[3] = temp;
     return ((rot1[0] <<24) | ( rot1[1] << 16 ) |( rot1[2] << 8)| (rot1[3]));
 
-	/* return ((rot & 0x000000FF) << 24) |
-        ((rot & 0x0000FF00) >> 8) |
-        ((rot & 0x00FF0000) >> 8) |
-        ((rot & 0xFF000000) >> 8);*/
-
 }
 
 
 void keyExp(unsigned char* key,unsigned long* w){
 
-    //key length 16
-    //n rounds 10
-    //n words = (10+1)*4 = 44
 
     unsigned long temp;
     for (int i = 0; i < 4; i++){
-      /*  w[i] = (key[4*i] << 24);
-        w[i] = w[i] & ( key[(4*i)+1] << 16 );
-        w[i] = w[i] &( key[(4*i)+2] << 8);
-        w[i] = w[i]& key[(4*i)+3];*/
-	//	w[i] =key[(4*i)]| ( key[(4*i)+1] << 8)|( key[(4*i)+2] << 16 )| (key[(4*i)+3] << 24) ;
+
 		w[i] =(key[(4*i)]<<24)| ( key[(4*i)+1] << 16)|( key[(4*i)+2] << 8 )| (key[(4*i)+3] ) ;
     }
     for (int i = 4; i < 44; i++)
@@ -152,55 +141,31 @@ void shift_rows(unsigned char** S){
 			S[i][j] = Sdashh[i][j];
 		}
 	}
-   /* unsigned char temp;
-    temp = S[1][0];
-    S[1][0] = S[1][3];
-    S[1][1] = temp;
-    temp = S[1][2];
-    S[1][2] = S[1][1];
-    S[1][3] = temp;
 
-    temp = S[2][0];
-    S[2][0] = S[2][2];
-    S[2][2] = temp;
-    temp = S[2][1];
-    S[2][1] = S[2][3];
-    S[2][3] = temp;
-
-    temp =S[3][0];
-    S[3][0]=S[3][3];
-    S[3][3]=S[3][2];
-    S[3][2]=S[3][1];
-    S[3][1]=temp; */
 }
 //
-unsigned char  gfMultiply(unsigned char h1, unsigned char  h2)
-{
-    //h1 can 0x01, 0x02 or 0x03
-    unsigned char  r;
-    if(h1==0x01)
-        return h2;
-    if(h1==0x02)
-    {
-        r = (h2<<1);
-        if(r>0xFF)
-            r = r^0x11;
-    }
-    else
-    {
-        r = (h2<<1);
-        if(r>0xFF)
-            r = r^0x11;
-        r = r^h2;
-    }
-    return r;
+unsigned char Multiply(unsigned char x1, unsigned char coff){
+	if(coff==0x02){
+		if( (x1 & 0x80)==0x80){
+			x1 = x1 << 1;
+			x1 = x1 ^ 0x1B;
+		}
+		else{
+			x1 = x1 << 1;
+		}
+
+	}else if(coff==0x03){
+		if((x1 & 0x80)==0x80){
+			unsigned char temp = x1;
+			x1 = x1 <<1;
+			x1 = x1 ^ 0x1B;
+			x1 = x1 ^ temp;
+		}else{
+			x1 = (x1<<1) ^ (x1);
+		}
+	}
+	return x1;
 }
-// xtime is a macro that finds the product of {02} and the argument to xtime modulo {1b}
-#define xtime(x)   ((x<<1) ^ (((x>>7) & 1) * 0x1b))
-
-// Multiplty is a macro used to multiply numbers in the field GF(2^8)
-#define Multiply(x,y) (((y & 1) * x) ^ ((y>>1 & 1) * xtime(x)) ^ ((y>>2 & 1) * xtime(xtime(x))) ^ ((y>>3 & 1) * xtime(xtime(xtime(x)))) ^ ((y>>4 & 1) * xtime(xtime(xtime(xtime(x))))))
-
 //
 void mix_columns(unsigned char** S){
 	unsigned char Sdash[4][4];
@@ -250,6 +215,7 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
 
 int main()
 {
+	clock_t tStart = clock();
 	unsigned char* plaintextt[4];
     for (int i=0; i < 4; i++){
         plaintextt[i] = new unsigned char[4];
@@ -273,15 +239,15 @@ int main()
              cout<< hex(plaintextt[i][j]);
     cout<<endl;
     unsigned char keyy[17] = "Thats my Kung Fu";
-    //for(int k = 0 ; k < 16 ; k++)
-		//cout<<hex(keyy[k]);
+
     encrypt(plaintextt,keyy);
    // cout << "AES" << endl;
 	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
-            cout<< hex(plaintextt[i][j]); //def53a8d5f58d42b5c5d1b5a34a0c2c9
+            cout<< hex(plaintextt[i][j]);
 
     cout<<endl;
+	    cout<<"Time taken: "<< (double)(clock() - tStart)/CLOCKS_PER_SEC<<" s\n";
     return 0;
 }
