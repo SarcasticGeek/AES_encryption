@@ -5,7 +5,8 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 #include <iostream>
 #include <iomanip>
 #include <time.h>
-
+#include <fstream>
+#include <string>
 using namespace std;
 
 //TO PRINT HEX
@@ -215,19 +216,35 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
 
 int main()
 {
+	unsigned char plaintexttt[17] ;
+	unsigned char keyy[17] ;
+	ifstream inputfile ;
+	inputfile.open("input.txt",ios::in);
+	char input_char;
+	if (inputfile.is_open())
+	{
+		//input for plain text
+		for (int charr_ = 0; charr_ < 16; charr_++)
+		{
+			inputfile.get(input_char);
+			plaintexttt[charr_]=(unsigned char)input_char;
+		}
+		inputfile.get(input_char);
+		if(input_char=='\n'){
+			//input for key
+			for (int charr_ = 0; charr_ < 16; charr_++)
+			{
+				inputfile.get(input_char);
+				keyy[charr_]=(unsigned char)input_char;
+			}
+		}
+		inputfile.close();
+	}
 
 	unsigned char* plaintextt[4];
     for (int i=0; i < 4; i++){
         plaintextt[i] = new unsigned char[4];
 	}
-	 unsigned char plaintexttt[17] = "Two One Nine Two";
-	// {
-	//	0x54,0x4F,0x4E,0x20,
-	//	0x77,0x6E,0x69,0x54,
-	//	0x6F,0x65,0x6E,0x77,
-	//	0x20,0x20,0x65,0x6F,
-	//};
-
 
     for(int i = 0;i<4;i++){
         for(int j = 0;j<4;j++){
@@ -239,11 +256,9 @@ int main()
         for(int j = 0 ; j<4 ;j++)
              cout<< hex(plaintextt[i][j]);
     cout<<endl;
-    unsigned char keyy[17] = "Thats my Kung Fu";
 	clock_t tStart = clock();
     encrypt(plaintextt,keyy);
-	long double EndTime = (long double)(clock() - tStart)/CLOCKS_PER_SEC;
-   // cout << "AES" << endl;
+    double EndTime = (double)(clock() - tStart)/CLOCKS_PER_SEC;
 	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
@@ -251,5 +266,13 @@ int main()
 
     cout<<endl;
 	    cout<<"Time taken: "<<EndTime <<" s\n";
+		//OUTPUT FILE
+	 ofstream myfile;
+	 myfile.open ("output.txt");
+	 for(int i = 0 ; i < 4;i++)
+        for(int j = 0 ; j<4 ;j++)
+            myfile<< hex(plaintextt[i][j]);
+	 myfile<<endl<<"Time taken: "<<EndTime <<" s\n";
+	 myfile.close();
     return 0;
 }
