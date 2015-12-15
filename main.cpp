@@ -8,7 +8,7 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 #include <fstream>
 #include <string>
 using namespace std;
-
+#define FROMCIN 0
 //TO PRINT HEX
 struct HexCharStruct
 {
@@ -216,8 +216,29 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
 
 int main()
 {
-	unsigned char plaintexttt[17] ;
+	unsigned char plaintexttt[17]  ;
 	unsigned char keyy[17] ;
+#if FROMCIN
+	string inputPlainText;
+	string inputKey;
+	cin>>inputPlainText;
+	cin>>inputKey;
+	for (int i = 0 , j = 0; i < 32; i+=2)
+	{
+		plaintexttt[j] = (unsigned char) (stoi(inputPlainText.substr(i,2),nullptr,16));
+		keyy[j] = (unsigned char) stoi(inputKey.substr(i,2),nullptr,16);
+
+		if(j==15)
+			break;
+		j++;
+	}
+	// {
+	//	0x54,0x4F,0x4E,0x20,
+	//	0x77,0x6E,0x69,0x54,
+	//	0x6F,0x65,0x6E,0x77,
+	//	0x20,0x20,0x65,0x6F,
+	//};
+#else
 	ifstream inputfile ;
 	inputfile.open("input.txt",ios::in);
 	char input_char;
@@ -240,7 +261,7 @@ int main()
 		}
 		inputfile.close();
 	}
-
+#endif
 	unsigned char* plaintextt[4];
     for (int i=0; i < 4; i++){
         plaintextt[i] = new unsigned char[4];
@@ -248,7 +269,7 @@ int main()
 
     for(int i = 0;i<4;i++){
         for(int j = 0;j<4;j++){
-            plaintextt[i][j] = plaintexttt[j*4 + i];
+			plaintextt[i][j] =plaintexttt[j*4 + i];
         }
     }
 	cout<<"Plain Text:"<<endl;
@@ -256,23 +277,33 @@ int main()
         for(int j = 0 ; j<4 ;j++)
              cout<< hex(plaintextt[i][j]);
     cout<<endl;
-	clock_t tStart = clock();
+	cout<<"Key:"<<endl;
+	for(int i = 0 ; i < 16;i++)
+             cout<< hex(keyy[i]);
+    cout<<endl;
+	double tStart = 0,tEnd = 0 ;
+	 tStart = clock();
     encrypt(plaintextt,keyy);
-    double EndTime = (double)(clock() - tStart)/CLOCKS_PER_SEC;
+	 tEnd = clock();
+	double EndTime = ((double)(tEnd - tStart))*1000.0/( CLOCKS_PER_SEC);
+   // cout << "AES" << endl;
 	cout<<"Cipher Text:"<<endl;
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
-            cout<< hex(plaintextt[i][j]);
+            cout<< hex(plaintextt[j][i]);
 
     cout<<endl;
 	    cout<<"Time taken: "<<EndTime <<" s\n";
+#if FROMCIN
+#else
 		//OUTPUT FILE
 	 ofstream myfile;
 	 myfile.open ("output.txt");
 	 for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
-            myfile<< hex(plaintextt[i][j]);
-	 myfile<<endl<<"Time taken: "<<EndTime <<" s\n";
+            myfile<< hex(plaintextt[j][i]);
+	 myfile<<endl<<"Time taken: "<<EndTime <<" ms\n";
 	 myfile.close();
+#endif
     return 0;
 }
