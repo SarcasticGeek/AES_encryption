@@ -294,9 +294,8 @@ int main()
         }
     }
 	cout<<"Plain Text:"<<endl;
-	for(int i = 0 ; i < 4;i++)
-        for(int j = 0 ; j<4 ;j++)
-             cout<< hex(plaintextt[i][j]);
+	for(int i = 0 ; i < 16;i++)
+             cout<< hex(plaintexttt[i]);
     cout<<endl;
 	cout<<"Key:"<<endl;
 	for(int i = 0 ; i < 16;i++)
