@@ -7,8 +7,10 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 #include <time.h>
 #include <fstream>
 #include <string>
+#include <stdio.h>
+#include <sstream>
+
 using namespace std;
-#define FROMCIN 0
 //TO PRINT HEX
 struct HexCharStruct
 {
@@ -231,58 +233,34 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
     substitute_bytes(plaintext);
     shift_rows(plaintext);
    add_round_key(10,plaintext,expendedkey);//40-43
-
 }
 
 
 int main()
 {
-	unsigned char plaintexttt[17]  ;
-	unsigned char keyy[17] ;
-#if FROMCIN
-	string inputPlainText;
+	unsigned char plaintexttt[16]  ;
+	unsigned char keyy[16] ;
+	int numOfenc =0,numOfCases=0;
+	string inputPlainText ;
 	string inputKey;
+	cin>>numOfCases;
 	cin>>inputPlainText;
+
+	//sscanf(arrstr,"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",&plaintexttt[0],&plaintexttt[1],&plaintexttt[2],&plaintexttt[3],&plaintexttt[4],&plaintexttt[5],&plaintexttt[6],&plaintexttt[7],&plaintexttt[8],&plaintexttt[9],&plaintexttt[10],&plaintexttt[11],&plaintexttt[12],&plaintexttt[13],&plaintexttt[14],&plaintexttt[15]);
 	cin>>inputKey;
+	cin>>numOfenc;
 	for (int i = 0 , j = 0; i < 32; i+=2)
 	{
-		plaintexttt[j] = (unsigned char) (stoi(inputPlainText.substr(i,2),nullptr,16));
-		keyy[j] = (unsigned char) stoi(inputKey.substr(i,2),nullptr,16);
+		//stringstream converter(inputPlainText.substr(i,2));
+		//converter>>hex>>(unsigned char)plaintexttt[j];
+		plaintexttt[j] = (unsigned char) strtoul(inputPlainText.substr(i,2).c_str(),NULL,16);
+		keyy[j] = (unsigned char) strtoul(inputKey.substr(i,2).c_str(),nullptr,16);
 
 		if(j==15)
 			break;
 		j++;
 	}
-	// {
-	//	0x54,0x4F,0x4E,0x20,
-	//	0x77,0x6E,0x69,0x54,
-	//	0x6F,0x65,0x6E,0x77,
-	//	0x20,0x20,0x65,0x6F,
-	//};
-#else
-	ifstream inputfile ;
-	inputfile.open("input.txt",ios::in);
-	char input_char;
-	if (inputfile.is_open())
-	{
-		//input for plain text
-		for (int charr_ = 0; charr_ < 16; charr_++)
-		{
-			inputfile.get(input_char);
-			plaintexttt[charr_]=(unsigned char)input_char;
-		}
-		inputfile.get(input_char);
-		if(input_char=='\n'){
-			//input for key
-			for (int charr_ = 0; charr_ < 16; charr_++)
-			{
-				inputfile.get(input_char);
-				keyy[charr_]=(unsigned char)input_char;
-			}
-		}
-		inputfile.close();
-	}
-#endif
+
 	unsigned char* plaintextt[4];
     for (int i=0; i < 4; i++){
         plaintextt[i] = new unsigned char[4];
@@ -293,37 +271,22 @@ int main()
 			plaintextt[i][j] =plaintexttt[j*4 + i];
         }
     }
-	cout<<"Plain Text:"<<endl;
-	for(int i = 0 ; i < 16;i++)
-             cout<< hex(plaintexttt[i]);
-    cout<<endl;
-	cout<<"Key:"<<endl;
-	for(int i = 0 ; i < 16;i++)
-             cout<< hex(keyy[i]);
-    cout<<endl;
 	double tStart = 0,tEnd = 0 ;
 	 tStart = clock();
-    encrypt(plaintextt,keyy);
+	 for(int i = 0 ; i < numOfenc; i++)
+		encrypt(plaintextt,keyy);
 	 tEnd = clock();
-	double EndTime = ((double)(tEnd - tStart))*1000.0/( CLOCKS_PER_SEC);
-   // cout << "AES" << endl;
-	cout<<"Cipher Text:"<<endl;
+	double EndTime = (tEnd - tStart)*1000.0/ CLOCKS_PER_SEC;
+
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
-            cout<< hex(plaintextt[j][i]);
+			//cout<<hex(plaintextt[j][i])<<endl;
+				if((plaintextt[j][i] & 0xFF)>> 4 | (plaintextt[j][i] & 0xFF)>> 5 | (plaintextt[j][i] & 0xFF)>> 6 | (plaintextt[j][i] & 0xFF)>> 7  )
+					printf("%x",plaintextt[j][i]);
+				else
+					printf("0%x",plaintextt[j][i]);
 
-    cout<<endl;
-	    cout<<"Time taken: "<<EndTime <<" s\n";
-#if FROMCIN
-#else
-		//OUTPUT FILE
-	 ofstream myfile;
-	 myfile.open ("output.txt");
-	 for(int i = 0 ; i < 4;i++)
-        for(int j = 0 ; j<4 ;j++)
-            myfile<< hex(plaintextt[j][i]);
-	 myfile<<endl<<"Time taken: "<<EndTime <<" ms\n";
-	 myfile.close();
-#endif
+	cout<<endl<<"Time taken: "<<EndTime / numOfenc <<" ms\n";
+	 system("pause");
     return 0;
 }
