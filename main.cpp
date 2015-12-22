@@ -273,15 +273,27 @@ int main()
 	//sscanf(arrstr,"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",&plaintexttt[0],&plaintexttt[1],&plaintexttt[2],&plaintexttt[3],&plaintexttt[4],&plaintexttt[5],&plaintexttt[6],&plaintexttt[7],&plaintexttt[8],&plaintexttt[9],&plaintexttt[10],&plaintexttt[11],&plaintexttt[12],&plaintexttt[13],&plaintexttt[14],&plaintexttt[15]);
 	cin>>inputKey;
 	cin>>numOfenc;
-	for (int i = 0 , j = 0; i < 32; i+=2)
+	//opt
+	unsigned long inputfromLongPlain;
+	unsigned long inputfromLongKey;
+	for (int i = 0 , j = 0; i < 32; i+=8)
 	{
-
-		plaintexttt[j] =  strtoul(inputPlainText.substr(i,2).c_str(),NULL,16);
-		keyy[j] = strtoul(inputKey.substr(i,2).c_str(),NULL,16);
-
+		//plaintexttt[j] =  strtoul(inputPlainText.substr(i,2).c_str(),NULL,16);
+		//keyy[j] = strtoul(inputKey.substr(i,2).c_str(),NULL,16);
+		//opt
+		inputfromLongPlain = strtoul(inputPlainText.substr(i,8).c_str(),NULL,16);
+		inputfromLongKey = strtoul(inputKey.substr(i,8).c_str(),NULL,16);
+		plaintexttt[j+3] = inputfromLongPlain & 0xFF ;//3
+        plaintexttt[j+2] = (inputfromLongPlain & 0x00FF00)>>8 ;//2
+        plaintexttt[j+1] = (inputfromLongPlain & 0x00FF0000)>>16;//1
+        plaintexttt[j] = (inputfromLongPlain & 0xFF000000)>>24 ;//0
+		keyy[j+3] = inputfromLongKey & 0xFF ;//3
+        keyy[j+2] = (inputfromLongKey & 0x00FF00)>>8 ;//2
+        keyy[j+1] = (inputfromLongKey & 0x00FF0000)>>16;//1
+        keyy[j] = (inputfromLongKey & 0xFF000000)>>24 ;//0
 		if(j==15)
 			break;
-		j++;
+		j+=4;
 	}
 
 	unsigned char* plaintextt[4];
