@@ -212,6 +212,26 @@ void mix_columns(unsigned char** S){
 		 }
 	 }
 }
+void shift_rowsAndmix_columns(unsigned char** S){
+		unsigned char Sdashh[4][4];
+		Sdashh[0][0] = S[0][0];
+		Sdashh[0][1] = S[0][1];
+		Sdashh[0][2] = S[0][2];
+		Sdashh[0][3] = S[0][3];
+	   for(int row = 1; row < 4;row++){
+		for(int col = 0; col < 4;col++)
+			{
+				Sdashh[row][col] = S[row][(row+col)%4];
+			}
+		}
+     for (int col = 0; col < 4; col++ ) {
+			 S[0][col] = (sboxforMulTo2[ Sdashh[0][col]] ) ^ (sboxforMulTo2[ Sdashh[1][col]])^Sdashh[1][col] ^ Sdashh[2][col] ^ Sdashh[3][col];
+			S[1][col] = ( Sdashh[0][col] ) ^ (sboxforMulTo2[Sdashh[1][col]]) ^ (sboxforMulTo2[Sdashh[2][col]])^ Sdashh[2][col] ^ Sdashh[3][col];
+			S[2][col] = ( Sdashh[0][col] ) ^ (Sdashh[1][col]) ^ (sboxforMulTo2[Sdashh[2][col]]) ^ (sboxforMulTo2[Sdashh[3][col]])^Sdashh[3][col];
+             S[3][col] = (sboxforMulTo2[Sdashh[0][col]])^ Sdashh[0][col] ^ ( Sdashh[1][col]) ^ Sdashh[2][col] ^ (sboxforMulTo2[ Sdashh[3][col]]);
+       // }
+    }
+}
 void add_round_key(int round,unsigned char** S ,unsigned long* expendedkeyAtround){
     for(int col = 0 ; col < 4 ; col++){
         S[3][col] ^= ((expendedkeyAtround[(round*4)+col] & (0xFF))) ;
@@ -227,8 +247,9 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
     add_round_key(0,plaintext,expendedkey); //0-3
     for(int i = 1 ; i < 10;i++){
         substitute_bytes(plaintext);
-        shift_rows(plaintext);
-        mix_columns(plaintext);
+        //shift_rows(plaintext);
+		//mix_columns(plaintext);
+        shift_rowsAndmix_columns(plaintext);
        add_round_key(i,plaintext,expendedkey);//[i * 4,(i+1)*4 -1]
     }
     substitute_bytes(plaintext);
