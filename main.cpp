@@ -7,6 +7,7 @@ AES 128 bit - Author: Mohamed Essam Fathalla
 #include <time.h>
 #include <fstream>
 #include <string>
+#include <stdlib.h>
 #include <stdio.h>
 #include <sstream>
 
@@ -238,12 +239,14 @@ void encrypt(unsigned char** plaintext ,unsigned char* key){
 
 int main()
 {
+	int numOfenc =0,numOfCases=0;
+	cin>>numOfCases;
+	for(int numofCase = 0 ; numofCase < numOfCases ; numofCase++){
 	unsigned char plaintexttt[16]  ;
 	unsigned char keyy[16] ;
-	int numOfenc =0,numOfCases=0;
 	string inputPlainText ;
 	string inputKey;
-	cin>>numOfCases;
+
 	cin>>inputPlainText;
 
 	//sscanf(arrstr,"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",&plaintexttt[0],&plaintexttt[1],&plaintexttt[2],&plaintexttt[3],&plaintexttt[4],&plaintexttt[5],&plaintexttt[6],&plaintexttt[7],&plaintexttt[8],&plaintexttt[9],&plaintexttt[10],&plaintexttt[11],&plaintexttt[12],&plaintexttt[13],&plaintexttt[14],&plaintexttt[15]);
@@ -251,10 +254,9 @@ int main()
 	cin>>numOfenc;
 	for (int i = 0 , j = 0; i < 32; i+=2)
 	{
-		//stringstream converter(inputPlainText.substr(i,2));
-		//converter>>hex>>(unsigned char)plaintexttt[j];
-		plaintexttt[j] = (unsigned char) strtoul(inputPlainText.substr(i,2).c_str(),NULL,16);
-		keyy[j] = (unsigned char) strtoul(inputKey.substr(i,2).c_str(),nullptr,16);
+
+		plaintexttt[j] =  strtoul(inputPlainText.substr(i,2).c_str(),NULL,16);
+		keyy[j] = strtoul(inputKey.substr(i,2).c_str(),NULL,16);
 
 		if(j==15)
 			break;
@@ -271,12 +273,12 @@ int main()
 			plaintextt[i][j] =plaintexttt[j*4 + i];
         }
     }
-	double tStart = 0,tEnd = 0 ;
-	 tStart = clock();
+	//double tStart = 0,tEnd = 0 ;
+	 //tStart = clock();
 	 for(int i = 0 ; i < numOfenc; i++)
 		encrypt(plaintextt,keyy);
-	 tEnd = clock();
-	double EndTime = (tEnd - tStart)*1000.0/ CLOCKS_PER_SEC;
+	 //tEnd = clock();
+	//double EndTime = (tEnd - tStart)*1000.0/ CLOCKS_PER_SEC;
 
     for(int i = 0 ; i < 4;i++)
         for(int j = 0 ; j<4 ;j++)
@@ -285,8 +287,8 @@ int main()
 					printf("%x",plaintextt[j][i]);
 				else
 					printf("0%x",plaintextt[j][i]);
-
-	cout<<endl<<"Time taken: "<<EndTime / numOfenc <<" ms\n";
-	 system("pause");
+	printf("\n");
+	}
+	//cout<<endl<<"Time taken: "<<EndTime / numOfenc <<" ms\n";
     return 0;
 }
